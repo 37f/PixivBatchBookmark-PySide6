@@ -24,7 +24,7 @@ def apply_proxy(value):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='PixivBatchBookmark Windows v1.0')
+    parser = argparse.ArgumentParser(description=f'PixivBatchBookmark Windows v{VERSION}')
     parser.add_argument('--offline', action='store_true', help='启动时不连接 Pixiv，可检查界面和 ID 解析')
     args = parser.parse_args()
     QCoreApplication.setApplicationName(APP_NAME)

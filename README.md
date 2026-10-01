@@ -1,4 +1,4 @@
-# PixivBatchBookmark Windows v1.0
+# PixivBatchBookmark Windows v1.0.1
 
 Windows 10/11 x64 桌面程序，用于从文本提取 Pixiv 作品 ID，并批量收藏、切换公开/私密或取消收藏。
 
@@ -6,15 +6,23 @@ Windows 10/11 x64 桌面程序，用于从文本提取 Pixiv 作品 ID，并批�
 
 ## 下载与界面预览
 
-- [Windows x64 完整程序包](https://github.com/37f/PixivBatchBookmark-PySide6/releases/download/v1.0.0/PixivBatchBookmark_PySide6_v1.0.0_win-x64.zip)
-- [完整源码与构建脚本](https://github.com/37f/PixivBatchBookmark-PySide6/releases/download/v1.0.0/PixivBatchBookmark_PySide6_v1.0.0_source.zip)
-- [版本说明和 SHA-256 校验文件](https://github.com/37f/PixivBatchBookmark-PySide6/releases/tag/v1.0.0)
+- [Windows x64 完整程序包](https://github.com/37f/PixivBatchBookmark-PySide6/releases/download/v1.0.1/PixivBatchBookmark_PySide6_v1.0.1_win-x64.zip)
+- [完整源码与构建脚本](https://github.com/37f/PixivBatchBookmark-PySide6/releases/download/v1.0.1/PixivBatchBookmark_PySide6_v1.0.1_source.zip)
+- [版本说明和 SHA-256 校验文件](https://github.com/37f/PixivBatchBookmark-PySide6/releases/tag/v1.0.1)
 
 本仓库是 Python / PySide6 实现，独立于 [已有的 WPF Windows 版](https://github.com/37f/PixivBatchBookmark-Windows)。
 
 ![主界面预览](docs/UI-preview.png)
 
 截图中的账号和操作结果来自本地测试，不代表真实 Pixiv 账号收藏。
+
+## v1.0.1 壁纸展示按钮
+
+右上角的“看看兽娘麻麻˃ 𖥦 ˂ ”按钮会隐藏登录、输入、操作、结果和日志区域，完整展示背景壁纸。按钮保持可见并变为“再见兽娘麻麻⊙﹏⊙”，再次点击恢复操作界面，壁纸重新作为底层背景。
+
+展示模式仅作用于程序窗口内部。输入、解析出的 ID、收藏模式、结果和日志均保留；已经开始的任务继续运行，切换展示模式不会自动暂停任务。
+
+![壁纸展示模式](docs/wallpaper-preview.png)
 
 ## 功能
 

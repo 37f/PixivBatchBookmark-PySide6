@@ -12,7 +12,7 @@ from PySide6.QtWidgets import (QApplication, QDialog, QFileDialog, QGroupBox, QH
     QProgressBar, QPushButton, QRadioButton, QSplitter, QTableWidget, QTableWidgetItem,
     QVBoxLayout, QWidget)
 
-from app_config import load_settings, resource_path, save_settings, user_data_dir
+from app_config import VERSION, load_settings, resource_path, save_settings, user_data_dir
 from pixiv.browser import BrowserSession
 from pixiv.parser import parse_ids
 from ui.controller import BatchController
@@ -49,14 +49,25 @@ class ThemeWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.background = QPixmap(str(resource_path('background.png')))
+        self.wallpaper_only = False
+
+    def set_wallpaper_only(self, enabled):
+        self.wallpaper_only = enabled
+        self.update()
 
     def paintEvent(self, event):
         painter = QPainter(self)
+        if self.wallpaper_only:
+            painter.fillRect(self.rect(), QColor(42, 33, 35))
         if not self.background.isNull():
-            image = self.background.scaled(self.size(), Qt.AspectRatioMode.KeepAspectRatioByExpanding,
+            # 展示模式保留完整原图；正常模式继续填满窗口，作为控件背景。
+            aspect = (Qt.AspectRatioMode.KeepAspectRatio if self.wallpaper_only
+                      else Qt.AspectRatioMode.KeepAspectRatioByExpanding)
+            image = self.background.scaled(self.size(), aspect,
                                            Qt.TransformationMode.SmoothTransformation)
             painter.drawPixmap((self.width() - image.width()) // 2, (self.height() - image.height()) // 2, image)
-        painter.fillRect(self.rect(), QColor(238, 244, 249, 105))
+        if not self.wallpaper_only:
+            painter.fillRect(self.rect(), QColor(238, 244, 249, 105))
         painter.end()
 
 
@@ -93,7 +104,7 @@ def button(label, callback, name=''):
 class MainWindow(QMainWindow):
     def __init__(self, session=None, offline=False):
         super().__init__()
-        self.setWindowTitle('PixivBatchBookmark Windows v1.0')
+        self.setWindowTitle(f'PixivBatchBookmark Windows v{VERSION}')
         self.setWindowIcon(QIcon(str(resource_path('icon.ico'))))
         self.resize(1160, 820)
         self.setMinimumSize(960, 720)
@@ -121,8 +132,19 @@ class MainWindow(QMainWindow):
     def _make_ui(self):
         central = ThemeWidget()
         self.setCentralWidget(central)
-        layout = QVBoxLayout(central)
-        layout.setContentsMargins(24, 20, 24, 20)
+        outer = QVBoxLayout(central)
+        outer.setContentsMargins(24, 20, 24, 20)
+        outer.setSpacing(10)
+        self.wallpaper_button = button('看看兽娘麻麻˃ 𖥦 ˂ ', self.toggle_wallpaper)
+        # 颜文字的补充平面字符由 Windows Historic 字体补齐，避免显示为方框。
+        self.wallpaper_button.setStyleSheet('font-family: "Microsoft YaHei UI", "Segoe UI Historic", "Segoe UI";')
+        self.wallpaper_button.setToolTip('隐藏操作界面，展示完整壁纸；再次点击恢复界面')
+        outer.addWidget(self.wallpaper_button, 0, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTop)
+        # 只隐藏操作区域，保留同一个窗口和按钮，输入及运行中的任务不受影响。
+        self.interface = QWidget()
+        outer.addWidget(self.interface, 1)
+        layout = QVBoxLayout(self.interface)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(10)
         header = QHBoxLayout()
         logo = QLabel()
@@ -133,7 +155,7 @@ class MainWindow(QMainWindow):
         title = QLabel('Pixiv Batch Bookmark')
         title.setObjectName('title')
         titles.addWidget(title)
-        subtitle = QLabel('Windows v1.0  ·  让收藏整理更轻松')
+        subtitle = QLabel(f'Windows v{VERSION}  ·  让收藏整理更轻松')
         subtitle.setObjectName('muted')
         titles.addWidget(subtitle)
         header.addLayout(titles)
@@ -253,6 +275,13 @@ class MainWindow(QMainWindow):
         footer.setObjectName('muted')
         layout.addWidget(footer)
         self._set_busy(False)
+
+    def toggle_wallpaper(self):
+        central = self.centralWidget()
+        showing = not central.wallpaper_only
+        central.set_wallpaper_only(showing)
+        self.interface.setVisible(not showing)
+        self.wallpaper_button.setText('再见兽娘麻麻⊙﹏⊙' if showing else '看看兽娘麻麻˃ 𖥦 ˂ ')
 
     def log(self, text):
         self.log_edit.appendPlainText(f'[{datetime.now():%H:%M:%S}] {text}')

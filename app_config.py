@@ -6,7 +6,8 @@ import sys
 from pathlib import Path
 
 APP_NAME = 'PixivBatchBookmark'
-VERSION = '1.0.1'
+VERSION = '1.0.2'
+WALLPAPERS = ('background.png', 'background_pink.jpg')
 
 
 def resource_path(name: str) -> Path:
@@ -22,7 +23,7 @@ def user_data_dir() -> Path:
 
 
 def load_settings() -> dict:
-    defaults = {'proxy': '', 'interval_ms': 1200}
+    defaults = {'proxy': '', 'interval_ms': 1200, 'wallpaper': WALLPAPERS[0]}
     try:
         value = json.loads((user_data_dir() / 'settings.json').read_text(encoding='utf-8'))
         if isinstance(value, dict):
@@ -30,6 +31,8 @@ def load_settings() -> dict:
             interval = value.get('interval_ms', 1200)
             if type(interval) is int:
                 defaults['interval_ms'] = max(1000, min(10000, interval))
+            if value.get('wallpaper') in WALLPAPERS:
+                defaults['wallpaper'] = value['wallpaper']
     except (OSError, ValueError):
         pass
     return defaults

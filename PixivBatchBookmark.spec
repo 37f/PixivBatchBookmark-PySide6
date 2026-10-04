@@ -4,7 +4,7 @@ import re
 
 root = Path(SPECPATH)
 datas = [(str(root / 'resources' / name), 'resources')
-         for name in ('background.png', 'icon.png', 'icon.ico', 'bridge.js')]
+         for name in ('background.png', 'background_pink.jpg', 'icon.png', 'icon.ico', 'bridge.js')]
 
 a = Analysis(
     [str(root / 'main.py')], pathex=[str(root)], binaries=[], datas=datas,

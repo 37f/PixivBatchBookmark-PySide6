@@ -1,14 +1,14 @@
-# PixivBatchBookmark Windows v1.0.1
+# PixivBatchBookmark Windows v1.0.2
 
 Windows 10/11 x64 桌面程序，用于从文本提取 Pixiv 作品 ID，并批量收藏、切换公开/私密或取消收藏。
 
-主题背景使用用户提供的**狐耳女孩秋叶竖图**，软件图标使用用户提供的**小女孩方图**。原图、PNG 图标和多尺寸 Windows ICO 已随项目提供。
+主题背景使用用户提供的**狐耳女孩秋叶竖图**和**粉发兔耳女孩竖图**，软件图标使用用户提供的**小女孩方图**。原图、PNG 图标和多尺寸 Windows ICO 已随项目提供。
 
 ## 下载与界面预览
 
-- [Windows x64 完整程序包](https://github.com/37f/PixivBatchBookmark-PySide6/releases/download/v1.0.1/PixivBatchBookmark_PySide6_v1.0.1_win-x64.zip)
-- [完整源码与构建脚本](https://github.com/37f/PixivBatchBookmark-PySide6/releases/download/v1.0.1/PixivBatchBookmark_PySide6_v1.0.1_source.zip)
-- [版本说明和 SHA-256 校验文件](https://github.com/37f/PixivBatchBookmark-PySide6/releases/tag/v1.0.1)
+- [Windows x64 完整程序包](https://github.com/37f/PixivBatchBookmark-PySide6/releases/download/v1.0.2/PixivBatchBookmark_PySide6_v1.0.2_win-x64.zip)
+- [完整源码与构建脚本](https://github.com/37f/PixivBatchBookmark-PySide6/releases/download/v1.0.2/PixivBatchBookmark_PySide6_v1.0.2_source.zip)
+- [版本说明和 SHA-256 校验文件](https://github.com/37f/PixivBatchBookmark-PySide6/releases/tag/v1.0.2)
 
 本仓库是 Python / PySide6 实现，独立于 [已有的 WPF Windows 版](https://github.com/37f/PixivBatchBookmark-Windows)。
 
@@ -16,13 +16,17 @@ Windows 10/11 x64 桌面程序，用于从文本提取 Pixiv 作品 ID，并批�
 
 截图中的账号和操作结果来自本地测试，不代表真实 Pixiv 账号收藏。
 
-## v1.0.1 壁纸展示按钮
+## 壁纸与展示模式
 
-右上角的“看看兽娘麻麻˃ 𖥦 ˂ ”按钮会隐藏登录、输入、操作、结果和日志区域，完整展示背景壁纸。按钮保持可见并变为“再见兽娘麻麻⊙﹏⊙”，再次点击恢复操作界面，壁纸重新作为底层背景。
+v1.0.2 新增粉发兔耳女孩壁纸。点击右上角“切换壁纸”，即可在两张壁纸之间切换；在操作界面和纯壁纸模式中都能使用，登录页同步更新。程序记住上次的壁纸选择，首次运行仍使用原狐耳女孩背景。
+
+右上角的“看看兽娘麻麻˃ 𖥦 ˂ ”按钮会隐藏登录、输入、操作、结果和日志区域，完整展示背景壁纸。右上角保留“切换壁纸”，展示按钮变为“再见兽娘麻麻⊙﹏⊙”，再次点击恢复操作界面，壁纸重新作为底层背景。
 
 展示模式仅作用于程序窗口内部。输入、解析出的 ID、收藏模式、结果和日志均保留；已经开始的任务继续运行，切换展示模式不会自动暂停任务。
 
-![壁纸展示模式](docs/wallpaper-preview.png)
+![新增粉发兔耳壁纸](docs/pink-wallpaper-preview.png)
+
+![狐耳女孩壁纸](docs/wallpaper-preview.png)
 
 ## 功能
 
@@ -106,7 +110,7 @@ Pixiv HTTP 401/403/429、未知响应结构或无法确认的写入状态会停�
 
 ```text
 %LOCALAPPDATA%\PixivBatchBookmark\
-├── settings.json   # 代理及请求间隔
+├── settings.json   # 代理、请求间隔及壁纸选择
 ├── browser\       # Chromium 登录 Cookie 与网页存储
 ├── cache\         # 浏览器缓存
 └── app.lock        # 同时仅运行一个实例，保护共享登录配置
@@ -151,6 +155,7 @@ PixivBatchBookmark_Windows/
 ├── resources/
 │   ├── originals/                  # 两份原图
 │   ├── background.png
+│   ├── background_pink.jpg
 │   ├── icon.png
 │   ├── icon.ico
 │   └── bridge.js                   # 隔离 JavaScript 请求桥

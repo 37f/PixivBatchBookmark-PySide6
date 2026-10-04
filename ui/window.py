@@ -12,7 +12,7 @@ from PySide6.QtWidgets import (QApplication, QDialog, QFileDialog, QGroupBox, QH
     QProgressBar, QPushButton, QRadioButton, QSplitter, QTableWidget, QTableWidgetItem,
     QVBoxLayout, QWidget)
 
-from app_config import VERSION, load_settings, resource_path, save_settings, user_data_dir
+from app_config import VERSION, WALLPAPERS, load_settings, resource_path, save_settings, user_data_dir
 from pixiv.browser import BrowserSession
 from pixiv.parser import parse_ids
 from ui.controller import BatchController
@@ -46,10 +46,18 @@ QSplitter::handle { background: transparent; width: 14px; }
 
 
 class ThemeWidget(QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, background='background.png'):
         super().__init__(parent)
-        self.background = QPixmap(str(resource_path('background.png')))
+        self.background = QPixmap(str(resource_path(background)))
         self.wallpaper_only = False
+
+    def set_background(self, name):
+        image = QPixmap(str(resource_path(name)))
+        if image.isNull():
+            return False
+        self.background = image
+        self.update()
+        return True
 
     def set_wallpaper_only(self, enabled):
         self.wallpaper_only = enabled
@@ -130,7 +138,7 @@ class MainWindow(QMainWindow):
             self.session.load_home()
 
     def _make_ui(self):
-        central = ThemeWidget()
+        central = ThemeWidget(background=self.settings['wallpaper'])
         self.setCentralWidget(central)
         outer = QVBoxLayout(central)
         outer.setContentsMargins(24, 20, 24, 20)
@@ -139,7 +147,16 @@ class MainWindow(QMainWindow):
         # 颜文字的补充平面字符由 Windows Historic 字体补齐，避免显示为方框。
         self.wallpaper_button.setStyleSheet('font-family: "Microsoft YaHei UI", "Segoe UI Historic", "Segoe UI";')
         self.wallpaper_button.setToolTip('隐藏操作界面，展示完整壁纸；再次点击恢复界面')
-        outer.addWidget(self.wallpaper_button, 0, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTop)
+        # 两个按钮在操作界面与纯壁纸模式中都保留，切换图片不重建控件。
+        wallpaper_tools = QWidget()
+        wallpaper_layout = QHBoxLayout(wallpaper_tools)
+        wallpaper_layout.setContentsMargins(0, 0, 0, 0)
+        wallpaper_layout.addStretch()
+        self.wallpaper_switch_button = button('切换壁纸', self.cycle_wallpaper)
+        self.wallpaper_switch_button.setToolTip('在狐耳女孩与粉发兔耳女孩壁纸之间切换')
+        wallpaper_layout.addWidget(self.wallpaper_switch_button)
+        wallpaper_layout.addWidget(self.wallpaper_button)
+        outer.addWidget(wallpaper_tools, 0, Qt.AlignmentFlag.AlignTop)
         # 只隐藏操作区域，保留同一个窗口和按钮，输入及运行中的任务不受影响。
         self.interface = QWidget()
         outer.addWidget(self.interface, 1)
@@ -283,6 +300,20 @@ class MainWindow(QMainWindow):
         self.interface.setVisible(not showing)
         self.wallpaper_button.setText('再见兽娘麻麻⊙﹏⊙' if showing else '看看兽娘麻麻˃ 𖥦 ˂ ')
 
+    def cycle_wallpaper(self):
+        current = WALLPAPERS.index(self.settings['wallpaper'])
+        selected = WALLPAPERS[(current + 1) % len(WALLPAPERS)]
+        if not self.centralWidget().set_background(selected):
+            QMessageBox.warning(self, '壁纸加载失败', '无法读取壁纸图片，请完整解压程序包后重试。')
+            return
+        self.settings['wallpaper'] = selected
+        if self.login_dialog:
+            self.login_theme.set_background(selected)
+        try:
+            save_settings(self.settings)
+        except OSError as error:
+            self.log('壁纸已切换，但无法保存选择：' + str(error))
+
     def log(self, text):
         self.log_edit.appendPlainText(f'[{datetime.now():%H:%M:%S}] {text}')
 
@@ -336,7 +367,8 @@ class MainWindow(QMainWindow):
             self.login_dialog.setWindowTitle('登录 Pixiv · 使用官方网站')
             self.login_dialog.resize(1040, 780)
             layout = QVBoxLayout(self.login_dialog)
-            theme = ThemeWidget()
+            theme = ThemeWidget(background=self.settings['wallpaper'])
+            self.login_theme = theme
             theme_layout = QHBoxLayout(theme)
             theme_layout.addWidget(QLabel('请在官方网站完成登录，成功后点击“返回首页并检查”。'), 1)
             theme_layout.addWidget(button('打开登录页', self.session.open_login))

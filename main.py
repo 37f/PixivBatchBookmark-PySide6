@@ -31,6 +31,7 @@ def main():
     QCoreApplication.setOrganizationName(APP_NAME)
     QCoreApplication.setApplicationVersion(VERSION)
     app = QApplication(sys.argv[:1])
+    app.setQuitOnLastWindowClosed(False)
     app.setFont(QFont('Microsoft YaHei UI', 10))
     app.setWindowIcon(QIcon(str(resource_path('icon.ico'))))
     lock = QLockFile(str(user_data_dir() / 'app.lock'))
@@ -47,6 +48,7 @@ def main():
         return 1
     app.aboutToQuit.connect(window.session.shutdown)
     window.show()
+    window.closed.connect(app.quit)
     result = app.exec()
     lock.unlock()
     return result

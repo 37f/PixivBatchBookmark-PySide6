@@ -1,0 +1,18 @@
+<Window x:Class="PixivBatchBookmark.Windows.LoginWindow"
+ xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+ xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+ xmlns:wv="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+ Title="Pixiv 官方网页登录" Icon="pack://application:,,,/PixivBatchBookmark;component/Assets/AppIcon.ico" Width="1000" Height="800" MinWidth="760" MinHeight="580" WindowStartupLocation="CenterOwner" Loaded="Window_Loaded" Closing="Window_Closing">
+ <Grid Margin="16"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+  <Grid Margin="0,0,0,12"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+   <StackPanel><TextBlock Text="在 Pixiv 官方页面登录" FontWeight="SemiBold" FontSize="18"/><TextBlock Text="密码由官方网页处理，程序不记录密码。验证码请在页面中完成。" Foreground="#667A90" Margin="0,4,0,0" FontSize="12"/></StackPanel>
+   <Button Grid.Column="1" x:Name="GoLoginButton" Content="前往登录页" Click="GoLogin_Click" IsEnabled="False"/>
+   <Button Grid.Column="2" x:Name="GoHomeButton" Content="Pixiv 首页" Click="GoHome_Click" IsEnabled="False"/>
+  </Grid>
+  <wv:WebView2 Grid.Row="1" x:Name="Browser"/>
+  <Grid Grid.Row="2" Margin="0,12,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+   <TextBlock x:Name="Status" Text="正在初始化登录窗口……" TextWrapping="Wrap" VerticalAlignment="Center" Margin="0,0,18,0" Foreground="#53677D"/>
+   <Button Grid.Column="1" x:Name="ConfirmButton" Content="完成登录并检查" Style="{StaticResource PrimaryButton}" Click="Confirm_Click" IsEnabled="False" Margin="0"/>
+  </Grid>
+ </Grid>
+</Window>

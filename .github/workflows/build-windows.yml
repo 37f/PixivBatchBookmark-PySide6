@@ -1,0 +1,29 @@
+name: Unified Windows build
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  windows-x64:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          architecture: x64
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Build and verify both original applications
+        shell: powershell
+        run: ./build.ps1 -PythonPath (Get-Command python).Source -RunUiSmoke
+      - name: Upload unified portable package
+        uses: actions/upload-artifact@v4
+        with:
+          name: PixivBatchBookmark-Unified-win-x64
+          path: dist/PixivBatchBookmark_Unified_v*_win-x64.zip
+          if-no-files-found: error

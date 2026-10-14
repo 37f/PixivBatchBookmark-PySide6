@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 APP_NAME = 'PixivBatchBookmark'
-VERSION = '1.0.2'
+VERSION = '1.1.0'
 WALLPAPERS = ('background.png', 'background_pink.jpg')
 
 

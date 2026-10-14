@@ -1,4 +1,46 @@
-# PixivBatchBookmark Windows v1.0.2
+# PixivBatchBookmark Windows 合一版 v1.1.0
+
+将原 [WPF 旧项目](https://github.com/37f/PixivBatchBookmark-Windows) 完整接入本 PySide6 新项目。
+**一个完整程序包、一个启动入口，默认打开新版。** 点击新版顶栏的“切换到旧版”，
+显示原 WPF 界面；点击旧版顶栏的“换回新版”，恢复新版。
+
+两个版本保留各自的功能、输入、结果、日志、壁纸及登录状态，反复切换复用窗口。
+纯壁纸模式仍可切换。任务正在执行或暂停时，切换按钮暂时禁用；完成或停止后恢复。
+切换启动过程中不能开始另一项任务。关闭任一主窗口会正常退出整个合一版。
+
+旧版源码、原始资源、测试与第三方许可位于 `legacy/`，没有把旧界面重新仿写成 Qt。
+Qt 与 WPF 使用独立进程协调显示，发布包内包含旧版自包含运行时。
+**两个版本的浏览器登录配置各自保存，首次使用可能需要分别登录一次。**
+新版代理设置只影响新版，旧版仍使用 Windows 系统代理。
+
+## 合一版构建与下载
+
+GitHub Actions 的 [Unified Windows build](https://github.com/37f/PixivBatchBookmark-PySide6/actions/workflows/build-windows.yml)
+会编译、测试并生成 `PixivBatchBookmark-Unified-win-x64` artifact。
+下载后解压外层 artifact ZIP，再解压里面的便携 ZIP，运行外层
+`PixivBatchBookmark.exe`；请保留 `_internal/` 和 `legacy/` 完整目录。
+发布包运行无需安装 Python 或 .NET SDK；旧版登录需要 Edge WebView2 Runtime。
+
+源码构建需要 **Windows x64、Python 3.12 x64、.NET 10 SDK**：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\build.ps1 -RunUiSmoke
+```
+
+或双击 `build.bat`。输出：
+
+```text
+dist/PixivBatchBookmark/PixivBatchBookmark.exe  # 统一入口
+dist/PixivBatchBookmark/_internal/            # 新版 Qt/Python 运行文件
+dist/PixivBatchBookmark/legacy/               # 原旧版与完整 .NET 运行文件
+dist/PixivBatchBookmark_Unified_v1.1.0_win-x64.zip
+```
+
+源码运行双击 `run.bat`：首次安装 Python 依赖，并测试/构建旧版，再启动新版。
+仅运行 `python main.py --offline` 可以查看新版；切换到旧版仍须事先构建 `legacy/dist/win-x64/`。
+集成说明见 [legacy/INTEGRATION.md](legacy/INTEGRATION.md)。
+
+## 以下为原 PySide6 v1.0.2 功能及发布记录
 
 Windows 10/11 x64 桌面程序，用于从文本提取 Pixiv 作品 ID，并批量收藏、切换公开/私密或取消收藏。
 
@@ -10,7 +52,7 @@ Windows 10/11 x64 桌面程序，用于从文本提取 Pixiv 作品 ID，并批�
 - [完整源码与构建脚本](https://github.com/37f/PixivBatchBookmark-PySide6/releases/download/v1.0.2/PixivBatchBookmark_PySide6_v1.0.2_source.zip)
 - [版本说明和 SHA-256 校验文件](https://github.com/37f/PixivBatchBookmark-PySide6/releases/tag/v1.0.2)
 
-本仓库是 Python / PySide6 实现，独立于 [已有的 WPF Windows 版](https://github.com/37f/PixivBatchBookmark-Windows)。
+本仓库新版界面为 Python / PySide6 实现；v1.1.0 已整合原 WPF Windows 版。
 
 ![主界面预览](docs/UI-preview.png)
 
@@ -47,7 +89,7 @@ v1.0.2 新增粉发兔耳女孩壁纸。点击右上角“切换壁纸”，即�
 
 ## 从源码运行
 
-安装 Python **3.12 x64**，建议安装时启用 Python Launcher。进入项目目录，双击 `run.bat`。首次运行会创建 `.venv` 并安装 PySide6。
+安装 Python **3.12 x64** 和 **.NET 10 SDK**，建议启用 Python Launcher。进入项目目录，双击 `run.bat`。首次运行创建 `.venv`、安装 PySide6 并构建旧版。
 
 PowerShell 方式：
 
@@ -120,7 +162,7 @@ Pixiv HTTP 401/403/429、未知响应结构或无法确认的写入状态会停�
 
 ## Windows 构建
 
-双击 `build.bat`，或在 PowerShell 中执行：
+合一版请双击 `build.bat` 或运行上方 `build.ps1`。下面仅是原新版 Qt 的手动构建步骤，独立执行不会包含旧版：
 
 ```powershell
 py -3.12 -m venv .venv

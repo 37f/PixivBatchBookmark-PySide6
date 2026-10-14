@@ -5,7 +5,7 @@ from datetime import datetime
 from pathlib import Path
 from urllib.parse import urlparse
 
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import QEvent, Qt, Signal
 from PySide6.QtGui import QColor, QIcon, QPainter, QPixmap
 from PySide6.QtWidgets import (QApplication, QDialog, QFileDialog, QGroupBox, QHBoxLayout,
     QHeaderView, QInputDialog, QLabel, QMainWindow, QMessageBox, QPlainTextEdit,
@@ -16,6 +16,7 @@ from app_config import VERSION, WALLPAPERS, load_settings, resource_path, save_s
 from pixiv.browser import BrowserSession
 from pixiv.parser import parse_ids
 from ui.controller import BatchController
+from ui.version_switcher import VersionSwitcher
 
 STYLE = '''
 QWidget { font-family: "Microsoft YaHei UI", "Microsoft YaHei", sans-serif; font-size: 13px; color: #293647; }
@@ -110,9 +111,10 @@ def button(label, callback, name=''):
 
 
 class MainWindow(QMainWindow):
+    closed = Signal()
     def __init__(self, session=None, offline=False):
         super().__init__()
-        self.setWindowTitle(f'PixivBatchBookmark Windows v{VERSION}')
+        self.setWindowTitle(f'PixivBatchBookmark Windows v{VERSION} · 新版')
         self.setWindowIcon(QIcon(str(resource_path('icon.ico'))))
         self.resize(1160, 820)
         self.setMinimumSize(960, 720)
@@ -123,7 +125,12 @@ class MainWindow(QMainWindow):
         self.controller = BatchController(self.session, self)
         self.controller.interval_ms = self.settings['interval_ms']
         self.login_dialog = None
+        self.version_switcher = None
+        self._busy = False
         self._make_ui()
+        self.version_switcher = VersionSwitcher(self)
+        self.version_switcher.availability_changed.connect(self._refresh_version_button)
+        self.version_switcher.failed.connect(self._version_error)
         self.session.login_changed.connect(self._login_changed)
         self.controller.item_done.connect(self._item_done)
         self.controller.progress.connect(self._progress)
@@ -151,6 +158,9 @@ class MainWindow(QMainWindow):
         wallpaper_tools = QWidget()
         wallpaper_layout = QHBoxLayout(wallpaper_tools)
         wallpaper_layout.setContentsMargins(0, 0, 0, 0)
+        self.version_button = button('切换到旧版', self.switch_version)
+        self.version_button.setToolTip('显示原 WPF 旧版，旧版可换回新版')
+        wallpaper_layout.addWidget(self.version_button)
         wallpaper_layout.addStretch()
         self.wallpaper_switch_button = button('切换壁纸', self.cycle_wallpaper)
         self.wallpaper_switch_button.setToolTip('在狐耳女孩与粉发兔耳女孩壁纸之间切换')
@@ -314,6 +324,28 @@ class MainWindow(QMainWindow):
         except OSError as error:
             self.log('壁纸已切换，但无法保存选择：' + str(error))
 
+    def switch_version(self):
+        if self.version_switcher:
+            self.version_switcher.switch_to_legacy()
+
+    def _refresh_version_button(self):
+        pending = self.version_switcher is not None and self.version_switcher.pending
+        blocked = self.version_switcher is not None and self.version_switcher.shutdown_blocked
+        login_open = self.login_dialog is not None and self.login_dialog.isVisible()
+        self.version_button.setEnabled(not self._busy and not pending and not blocked and not login_open)
+        self.interface.setEnabled(not pending)
+        self.bookmark_button.setEnabled(not self._busy and not blocked)
+        self.remove_button.setEnabled(not self._busy and not blocked)
+
+    def _version_error(self, message):
+        self.log(message)
+        QMessageBox.warning(self, '版本切换', message)
+
+    def eventFilter(self, watched, event):
+        if watched is self.login_dialog and event.type() in (QEvent.Type.Show, QEvent.Type.Hide):
+            self._refresh_version_button()
+        return super().eventFilter(watched, event)
+
     def log(self, text):
         self.log_edit.appendPlainText(f'[{datetime.now():%H:%M:%S}] {text}')
 
@@ -364,6 +396,7 @@ class MainWindow(QMainWindow):
     def show_login(self):
         if self.login_dialog is None:
             self.login_dialog = QDialog(self)
+            self.login_dialog.installEventFilter(self)
             self.login_dialog.setWindowTitle('登录 Pixiv · 使用官方网站')
             self.login_dialog.resize(1040, 780)
             layout = QVBoxLayout(self.login_dialog)
@@ -409,6 +442,8 @@ class MainWindow(QMainWindow):
         QMessageBox.information(self, '已保存', '请关闭并重新打开软件，使代理设置生效。')
 
     def start_batch(self, action):
+        if self.version_switcher and (self.version_switcher.pending or self.version_switcher.shutdown_blocked):
+            return
         self.parse_input()
         if not self.ids:
             QMessageBox.information(self, '没有作品 ID', '请粘贴作品链接、数字列表或带 ID 标记的文本。')
@@ -433,6 +468,7 @@ class MainWindow(QMainWindow):
         self.controller.start(self.ids, action, self.private_radio.isChecked())
 
     def _set_busy(self, busy):
+        self._busy = busy
         for widget in (self.input_edit, self.parse_button, self.paste_button, self.import_button,
                 self.clear_button, self.bookmark_button, self.remove_button, self.public_radio,
                 self.private_radio, self.login_button, self.refresh_button, self.clear_login_button, self.proxy_button):
@@ -442,6 +478,7 @@ class MainWindow(QMainWindow):
         self.export_button.setEnabled(not busy)
         if self.login_dialog:
             self.login_dialog.setEnabled(not busy)
+        self._refresh_version_button()
 
     def pause(self):
         self.controller.toggle_pause()
@@ -508,6 +545,10 @@ class MainWindow(QMainWindow):
             QMessageBox.information(self, '等待当前作品完成', '已请求停止。当前作品的核验/恢复结束后，请再关闭窗口。')
             event.ignore()
         else:
+            if self.version_switcher and not self.version_switcher.request_close():
+                event.ignore()
+                return
             if self.login_dialog:
                 self.login_dialog.hide()
             event.accept()
+            self.closed.emit()
